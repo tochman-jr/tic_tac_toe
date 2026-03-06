@@ -116,6 +116,8 @@ function startGame(room) {
     games[gameId].playerSymbols[room.players[0].id] = 'X';
     games[gameId].playerSymbols[room.players[1].id] = 'O';
 
+    console.log('[WS] starting game', { gameId, player1: room.players[0].id, player2: room.players[1].id });
+
     // Send game start to both players
     room.players[0].send(JSON.stringify({
         type: 'gameStart',
@@ -217,6 +219,7 @@ function broadcastGameState(gameId) {
         gameOver: game.gameOver,
         winner: game.gameOver ? checkWinner(game.board) : null
     };
+    console.log('[WS] broadcasting gameState', { gameId, gameState });
 
     game.players.forEach(player => {
         player.send(JSON.stringify(gameState));
