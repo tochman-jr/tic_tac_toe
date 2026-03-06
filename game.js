@@ -26,16 +26,18 @@ class TicTacToe {
     }
 
     showMainMenu() {
+        document.getElementById('menuScreen').classList.remove('hidden');
+        document.getElementById('gameScreen').classList.add('hidden');
         document.getElementById('mainMenu').classList.remove('hidden');
         document.getElementById('onlineMenu').classList.add('hidden');
-        document.getElementById('game').classList.add('hidden');
         this.gameMode = null;
     }
 
     showOnlineMenu() {
+        document.getElementById('menuScreen').classList.remove('hidden');
+        document.getElementById('gameScreen').classList.add('hidden');
         document.getElementById('mainMenu').classList.add('hidden');
         document.getElementById('onlineMenu').classList.remove('hidden');
-        document.getElementById('game').classList.add('hidden');
         this.setupOnlineMenuEventListeners();
         this.connectToServer();
     }
@@ -242,6 +244,7 @@ class TicTacToe {
                 break;
             case 'gameStart':
                 this.gameMode = 'online';
+                this.resetGame();                     // clear any prior state
                 this.gameId = data.gameId;
                 this.player = data.player;
                 this.opponent = data.opponent;
@@ -280,6 +283,15 @@ class TicTacToe {
             if (!this.ws || this.ws.readyState !== WebSocket.OPEN || !this.gameId || this.currentPlayer !== this.player) {
                 return;
             }
+            // optimistic update so user sees move immediately
+            this.board[index] = this.currentPlayer;
+            this.currentPlayer = this.currentPlayer === 'X' ? 'O' : 'X';
+            this.render();
+            if (this.checkWinner() || this.isBoardFull()) {
+                this.gameOver = true;
+                this.render();
+            }
+
             this.ws.send(JSON.stringify({
                 type: 'move',
                 index: index
@@ -386,18 +398,17 @@ class TicTacToe {
     }
 
     showGame() {
-        document.getElementById('mainMenu').classList.add('hidden');
-        document.getElementById('onlineMenu').classList.add('hidden');
-        document.getElementById('game').classList.remove('hidden');
+        document.getElementById('menuScreen').classList.add('hidden');
+        document.getElementById('gameScreen').classList.remove('hidden');
     }
 
     backToMenu() {
+        this.resetGame();
         if (this.gameMode === 'online') {
             this.showOnlineMenu();
         } else {
             this.showMainMenu();
         }
-        this.resetGame();
     }
 
     resetGame() {

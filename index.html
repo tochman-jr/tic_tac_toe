@@ -7,7 +7,8 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
+    <!-- menu screen (AI/local/online selection) -->
+    <div id="menuScreen" class="container">
         <h1>Multiplayer Tic Tac Toe</h1>
         
         <!-- Main Menu -->
@@ -28,9 +29,12 @@
             </div>
             <button id="backToMainBtn" class="back-btn">← Back to Main Menu</button>
         </div>
+    </div>
 
-        <!-- Game Board -->
-        <div id="game" class="game hidden">
+    <!-- game screen (board and controls) -->
+    <div id="gameScreen" class="container hidden">
+        <h1>Multiplayer Tic Tac Toe</h1>
+        <div id="game" class="game">
             <div class="board" id="board">
                 <div class="cell" data-index="0"></div>
                 <div class="cell" data-index="1"></div>
