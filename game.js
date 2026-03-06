@@ -119,6 +119,7 @@ class TicTacToe {
 
         this.ws.onopen = () => {
             this.showMessage('Connected! Choose an option below.');
+            console.log('[WS] connection opened');
         };
 
         this.ws.onmessage = (event) => {
@@ -135,10 +136,12 @@ class TicTacToe {
         this.ws.onclose = (event) => {
             this.showMessage('Disconnected from server. Refresh to reconnect.');
             this.showMainMenu();
+            console.log('[WS] connection closed', event);
         };
 
         this.ws.onerror = (error) => {
             this.showMessage('Connection error. Please check if the server is running.');
+            console.error('[WS] connection error', error);
         };
     }
     
@@ -249,6 +252,20 @@ class TicTacToe {
 
             console.log('[WS] creating room, payload=', payload);
             this.ws.send(JSON.stringify(payload));
+
+            // start a timeout: if no roomCreated arrives, notify host
+            if (this._roomCreateTimeout) clearTimeout(this._roomCreateTimeout);
+            this._roomCreateTimeout = setTimeout(() => {
+                const codeDisplay = document.getElementById('roomCodeDisplay');
+                if (codeDisplay && codeDisplay.textContent === 'Waiting...') {
+                    this.showMessage('No response from server — try again');
+                    console.warn('[WS] createRoom timed out waiting for roomCreated');
+                    const hostRoomCode = document.getElementById('hostRoomCode');
+                    if (hostRoomCode) hostRoomCode.classList.add('hidden');
+                    document.getElementById('createRoomBtn').disabled = false;
+                    document.getElementById('joinRoomBtn').disabled = false;
+                }
+            }, 10000);
             document.getElementById('createRoomBtn').disabled = true;
             document.getElementById('joinRoomBtn').disabled = true;
             this.showMessage('Creating room...');
@@ -288,6 +305,11 @@ class TicTacToe {
                 if (hostRoomCode) hostRoomCode.classList.remove('hidden');
                 if (hostSettings) hostSettings.classList.remove('hidden');
                 if (onlineChoice) onlineChoice.classList.add('hidden');
+                // clear create-room timeout
+                if (this._roomCreateTimeout) {
+                    clearTimeout(this._roomCreateTimeout);
+                    this._roomCreateTimeout = null;
+                }
                 break;
             case 'waitingInRoom':
                 this.showMessage(data.message);
