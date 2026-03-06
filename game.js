@@ -78,6 +78,18 @@ class TicTacToe {
         if (roomInput) roomInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') this.joinRoom();
         });
+
+        const copyBtn = document.getElementById('copyRoomCodeBtn');
+        if (copyBtn) copyBtn.addEventListener('click', () => {
+            const codeEl = document.getElementById('roomCodeDisplay');
+            if (codeEl && codeEl.textContent) {
+                navigator.clipboard && navigator.clipboard.writeText(codeEl.textContent).then(() => {
+                    this.showMessage('Room code copied to clipboard');
+                }).catch(() => {
+                    this.showMessage('Copy failed — select and copy manually');
+                });
+            }
+        });
     }
 
     startAIMode() {
@@ -257,7 +269,18 @@ class TicTacToe {
             case 'roomCreated':
                 this.roomCode = data.code;
                 this.showMessage(`Room created! Share this code: ${this.roomCode}`);
-                document.getElementById('roomCodeInput').value = this.roomCode;
+                // show the code in both join input and host display (if present)
+                const joinInput = document.getElementById('roomCodeInput');
+                if (joinInput) joinInput.value = this.roomCode;
+
+                const codeDisplay = document.getElementById('roomCodeDisplay');
+                const hostRoomCode = document.getElementById('hostRoomCode');
+                const hostSettings = document.getElementById('hostSettings');
+                const onlineChoice = document.getElementById('onlineChoice');
+                if (codeDisplay) codeDisplay.textContent = this.roomCode;
+                if (hostRoomCode) hostRoomCode.classList.remove('hidden');
+                if (hostSettings) hostSettings.classList.remove('hidden');
+                if (onlineChoice) onlineChoice.classList.add('hidden');
                 break;
             case 'waitingInRoom':
                 this.showMessage(data.message);
