@@ -244,12 +244,15 @@ class TicTacToe {
             const payload = { type: 'createRoom' };
             if (matchCount) payload.matchCount = matchCount;
 
-            // reveal host code area immediately with a placeholder while server generates the code
+            // generate a room code client-side and show it immediately
+            const generated = Math.random().toString(36).substr(2, 6).toUpperCase();
             const hostRoomCode = document.getElementById('hostRoomCode');
             const codeDisplay = document.getElementById('roomCodeDisplay');
-            if (codeDisplay) codeDisplay.textContent = 'Waiting...';
+            if (codeDisplay) codeDisplay.textContent = generated;
             if (hostRoomCode) hostRoomCode.classList.remove('hidden');
 
+            // send desiredCode to server so server can use it if available
+            payload.desiredCode = generated;
             console.log('[WS] creating room, payload=', payload);
             this.ws.send(JSON.stringify(payload));
 

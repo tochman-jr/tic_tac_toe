@@ -31,7 +31,7 @@ wss.on('connection', (ws) => {
 
         switch (data.type) {
             case 'createRoom':
-                handleCreateRoom(ws, data.matchCount);
+                handleCreateRoom(ws, data.desiredCode, data.matchCount);
                 break;
             case 'joinRoom':
                 handleJoinRoom(ws, data.code);
@@ -53,8 +53,19 @@ wss.on('connection', (ws) => {
     });
 });
 
-function handleCreateRoom(ws, matchCount) {
-    const roomCode = generateRoomCode();
+function handleCreateRoom(ws, desiredCode, matchCount) {
+    let roomCode = null;
+    // if client supplied a desiredCode and it's not already taken, use it
+    if (desiredCode && !rooms[desiredCode]) {
+        roomCode = desiredCode;
+    } else {
+        // otherwise generate a unique code
+        roomCode = generateRoomCode();
+        while (rooms[roomCode]) {
+            roomCode = generateRoomCode();
+        }
+    }
+
     rooms[roomCode] = {
         players: [ws],
         gameId: null,
