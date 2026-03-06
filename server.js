@@ -17,10 +17,10 @@ let games = {}; // Store game states
 let rooms = {}; // Store room information: { code: { players: [], gameId: null } }
 
 wss.on('connection', (ws) => {
-    console.log('[WS] new connection');
+     // connection opened
 
     ws.on('message', (message) => {
-        console.log('[WS] received message', message.toString());
+         // received message
         let data;
         try {
             data = JSON.parse(message.toString());
@@ -43,7 +43,7 @@ wss.on('connection', (ws) => {
                 handleReset(ws, data);
                 break;
             default:
-                console.warn('[WS] unknown type', data.type);
+                 // unknown message type
         }
     });
 
@@ -118,7 +118,7 @@ function startGame(room) {
     games[gameId].playerSymbols[room.players[0].id] = 'X';
     games[gameId].playerSymbols[room.players[1].id] = 'O';
 
-    console.log('[WS] starting game', { gameId, player1: room.players[0].id, player2: room.players[1].id });
+     // starting game
 
     // Send game start to both players
     room.players[0].send(JSON.stringify({
@@ -141,24 +141,24 @@ function startGame(room) {
 function handleMove(ws, data) {
     const gameId = ws.gameId;
     const game = games[gameId];
-    console.log('[WS] handleMove', { gameId, wsId: ws.id, data });
+     // handling move
 
     if (!game) {
-        console.warn('[WS] move ignored: no game');
+         // move ignored: no game
         return;
     }
     if (game.gameOver) {
-        console.warn('[WS] move ignored: game over');
+         // move ignored: game over
         return;
     }
     if (game.currentPlayer !== game.playerSymbols[ws.id]) {
-        console.warn('[WS] move ignored: not player turn', {currentPlayer: game.currentPlayer, symbol: game.playerSymbols[ws.id]});
+         // move ignored: wrong turn
         return;
     }
 
     const index = data.index;
     if (game.board[index] !== null) {
-        console.warn('[WS] move ignored: cell occupied', index);
+         // move ignored: cell occupied
         return;
     }
 
@@ -221,7 +221,7 @@ function broadcastGameState(gameId) {
         gameOver: game.gameOver,
         winner: game.gameOver ? checkWinner(game.board) : null
     };
-    console.log('[WS] broadcasting gameState', { gameId, gameState });
+     // broadcasting state
 
     game.players.forEach(player => {
         player.send(JSON.stringify(gameState));

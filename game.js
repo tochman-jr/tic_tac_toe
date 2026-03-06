@@ -78,12 +78,10 @@ class TicTacToe {
         this.ws = new WebSocket(wsUrl);
 
         this.ws.onopen = () => {
-            console.log('[WS] open');
             this.showMessage('Connected! Choose an option below.');
         };
 
         this.ws.onmessage = (event) => {
-            console.log('[WS] message received', event.data);
             let data;
             try {
                 data = JSON.parse(event.data);
@@ -95,13 +93,11 @@ class TicTacToe {
         };
 
         this.ws.onclose = (event) => {
-            console.log('[WS] close', event);
             this.showMessage('Disconnected from server. Refresh to reconnect.');
             this.showMainMenu();
         };
 
         this.ws.onerror = (error) => {
-            console.error('[WS] error', error);
             this.showMessage('Connection error. Please check if the server is running.');
         };
     }
