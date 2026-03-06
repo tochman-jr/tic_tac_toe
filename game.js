@@ -324,12 +324,16 @@ class TicTacToe {
         const statusEl = document.getElementById('status');
 
         cells.forEach((cell, index) => {
-            cell.textContent = this.board[index];
             cell.className = 'cell';
-            if (this.board[index] === 'X') {
+            const val = this.board[index];
+            if (val === 'X') {
                 cell.classList.add('x');
-            } else if (this.board[index] === 'O') {
+                cell.innerHTML = '<i class="fa fa-times"></i>';
+            } else if (val === 'O') {
                 cell.classList.add('o');
+                cell.innerHTML = '<i class="fa fa-circle-o"></i>';
+            } else {
+                cell.innerHTML = '';
             }
         });
 
