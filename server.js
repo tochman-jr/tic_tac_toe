@@ -113,6 +113,8 @@ function startGame(room) {
     // Assign player symbols
     room.players[0].id = 'player1';
     room.players[1].id = 'player2';
+    // remember gameId on each websocket so moves can be associated
+    room.players.forEach(ws => ws.gameId = gameId);
     games[gameId].playerSymbols[room.players[0].id] = 'X';
     games[gameId].playerSymbols[room.players[1].id] = 'O';
 
