@@ -24,7 +24,10 @@
         <!-- Online Menu -->
         <div id="onlineMenu" class="menu hidden">
             <h2>Online Multiplayer</h2>
-            <button id="createRoomBtn" class="menu-btn">Create Room</button>
+            <div class="create-section">
+                <input type="number" id="matchCountInput" placeholder="Number of Matches" min="1" max="10" value="3" class="room-input">
+                <button id="createRoomBtn" class="menu-btn">Create Room</button>
+            </div>
             <div class="join-section">
                 <input type="text" id="roomCodeInput" placeholder="Enter Room Code" maxlength="6" class="room-input">
                 <button id="joinRoomBtn" class="menu-btn">Join Room</button>

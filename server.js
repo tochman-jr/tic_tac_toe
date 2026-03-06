@@ -14,7 +14,7 @@ const wss = new WebSocket.Server({ server: app.listen(port, () => {
 }) });
 
 let games = {}; // Store game states
-let rooms = {}; // Store room information: { code: { players: [], gameId: null, scores: { player1: {wins:0, losses:0, draws:0}, player2: {wins:0, losses:0, draws:0} }, starter: 'player1' } }
+let rooms = {}; // Store room information: { code: { players: [], gameId: null, scores: { player1: {wins:0, losses:0, draws:0}, player2: {wins:0, losses:0, draws:0} }, starter: 'player1', matchCount: 3, currentMatch: 0 } }
 
 wss.on('connection', (ws) => {
      // connection opened
@@ -31,7 +31,7 @@ wss.on('connection', (ws) => {
 
         switch (data.type) {
             case 'createRoom':
-                handleCreateRoom(ws);
+                handleCreateRoom(ws, data.matchCount);
                 break;
             case 'joinRoom':
                 handleJoinRoom(ws, data.code);
@@ -53,7 +53,7 @@ wss.on('connection', (ws) => {
     });
 });
 
-function handleCreateRoom(ws) {
+function handleCreateRoom(ws, matchCount) {
     const roomCode = generateRoomCode();
     rooms[roomCode] = {
         players: [ws],
@@ -62,7 +62,9 @@ function handleCreateRoom(ws) {
             player1: { wins: 0, losses: 0, draws: 0 },
             player2: { wins: 0, losses: 0, draws: 0 }
         },
-        starter: 'player1'
+        starter: 'player1',
+        matchCount: parseInt(matchCount) || 3,
+        currentMatch: 0
     };
     ws.roomCode = roomCode;
     ws.send(JSON.stringify({
@@ -104,6 +106,7 @@ function handleJoinRoom(ws, code) {
 }
 
 function startGame(room) {
+    room.currentMatch++;
     const gameId = generateGameId();
     room.gameId = gameId;
 
@@ -190,6 +193,18 @@ function handleMove(ws, data) {
         room.starter = room.starter === 'player1' ? 'player2' : 'player1';
     }
 
+    // Check if match limit reached
+    if (room.currentMatch >= room.matchCount) {
+        // End session
+        broadcastGameState(gameId);
+        setTimeout(() => {
+            room.players.forEach(player => {
+                player.send(JSON.stringify({ type: 'sessionEnd', finalScores: room.scores }));
+            });
+        }, 2000); // Delay to show final state
+        return;
+    }
+
     broadcastGameState(gameId);
 }
 
@@ -242,7 +257,9 @@ function broadcastGameState(gameId) {
         currentPlayer: game.currentPlayer,
         gameOver: game.gameOver,
         winner: game.gameOver ? checkWinner(game.board) : null,
-        scores: room.scores
+        scores: room.scores,
+        currentMatch: room.currentMatch,
+        matchCount: room.matchCount
     };
      // broadcasting state
 

@@ -101,30 +101,7 @@ class TicTacToe {
             this.showMessage('Connection error. Please check if the server is running.');
         };
     }
-
-    createRoom() {
-        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-            this.ws.send(JSON.stringify({ type: 'createRoom' }));
-            document.getElementById('createRoomBtn').disabled = true;
-            document.getElementById('joinRoomBtn').disabled = true;
-            this.showMessage('Creating room...');
-        }
-    }
-
-    joinRoom() {
-        const code = document.getElementById('roomCodeInput').value.trim().toUpperCase();
-        if (!code) {
-            this.showMessage('Please enter a room code.');
-            return;
-        }
-
-        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-            this.ws.send(JSON.stringify({ type: 'joinRoom', code: code }));
-            document.getElementById('createRoomBtn').disabled = true;
-            document.getElementById('joinRoomBtn').disabled = true;
-            this.showMessage('Joining room...');
-        }
-    }
+    
 
 
 
@@ -213,7 +190,18 @@ class TicTacToe {
 
     createRoom() {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-            this.ws.send(JSON.stringify({ type: 'createRoom' }));
+            // read optional matchCount from UI (if present)
+            const matchEl = document.getElementById('matchCountInput');
+            let matchCount = null;
+            if (matchEl) {
+                const v = parseInt(matchEl.value, 10);
+                if (!isNaN(v) && v > 0) matchCount = v;
+            }
+
+            const payload = { type: 'createRoom' };
+            if (matchCount) payload.matchCount = matchCount;
+
+            this.ws.send(JSON.stringify(payload));
             document.getElementById('createRoomBtn').disabled = true;
             document.getElementById('joinRoomBtn').disabled = true;
             this.showMessage('Creating room...');

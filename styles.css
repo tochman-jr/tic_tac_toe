@@ -207,6 +207,13 @@ h1 {
     transform: none;
 }
 
+.create-section {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
 .join-section {
     display: flex;
     gap: 10px;
