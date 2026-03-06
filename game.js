@@ -93,7 +93,8 @@ class TicTacToe {
                 statusEl.className = 'status draw';
             }
         } else {
-            statusEl.textContent = `Player ${this.currentPlayer}'s Turn`;
+            const playerClass = this.currentPlayer === 'X' ? 'player-x' : 'player-o';
+            statusEl.innerHTML = `Player <span class="${playerClass}">${this.currentPlayer}</span>'s Turn`;
             statusEl.className = 'status';
         }
     }
