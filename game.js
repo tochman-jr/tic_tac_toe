@@ -38,17 +38,45 @@ class TicTacToe {
         document.getElementById('gameScreen').classList.add('hidden');
         document.getElementById('mainMenu').classList.add('hidden');
         document.getElementById('onlineMenu').classList.remove('hidden');
+        // ensure choice/settings visibility reset
+        const onlineChoice = document.getElementById('onlineChoice');
+        const hostSettings = document.getElementById('hostSettings');
+        const joinSettings = document.getElementById('joinSettings');
+        if (onlineChoice) onlineChoice.classList.remove('hidden');
+        if (hostSettings) hostSettings.classList.add('hidden');
+        if (joinSettings) joinSettings.classList.add('hidden');
+
         this.setupOnlineMenuEventListeners();
         this.connectToServer();
     }
 
     setupOnlineMenuEventListeners() {
-        document.getElementById('createRoomBtn').addEventListener('click', () => this.createRoom());
-        document.getElementById('joinRoomBtn').addEventListener('click', () => this.joinRoom());
-        document.getElementById('roomCodeInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                this.joinRoom();
-            }
+        const hostBtn = document.getElementById('hostChoiceBtn');
+        const joinBtn = document.getElementById('joinChoiceBtn');
+        const onlineChoice = document.getElementById('onlineChoice');
+        const hostSettings = document.getElementById('hostSettings');
+        const joinSettings = document.getElementById('joinSettings');
+
+        if (hostBtn) hostBtn.addEventListener('click', () => {
+            if (onlineChoice) onlineChoice.classList.add('hidden');
+            if (hostSettings) hostSettings.classList.remove('hidden');
+            if (joinSettings) joinSettings.classList.add('hidden');
+        });
+
+        if (joinBtn) joinBtn.addEventListener('click', () => {
+            if (onlineChoice) onlineChoice.classList.add('hidden');
+            if (joinSettings) joinSettings.classList.remove('hidden');
+            if (hostSettings) hostSettings.classList.add('hidden');
+        });
+
+        const createBtn = document.getElementById('createRoomBtn');
+        const joinRoomBtn = document.getElementById('joinRoomBtn');
+        if (createBtn) createBtn.addEventListener('click', () => this.createRoom());
+        if (joinRoomBtn) joinRoomBtn.addEventListener('click', () => this.joinRoom());
+
+        const roomInput = document.getElementById('roomCodeInput');
+        if (roomInput) roomInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') this.joinRoom();
         });
     }
 

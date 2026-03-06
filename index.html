@@ -24,14 +24,22 @@
         <!-- Online Menu -->
         <div id="onlineMenu" class="menu hidden">
             <h2>Online Multiplayer</h2>
-            <div class="create-section">
+
+            <div id="onlineChoice" class="choice-section">
+                <button id="hostChoiceBtn" class="menu-btn">Host a Game</button>
+                <button id="joinChoiceBtn" class="menu-btn">Join a Game</button>
+            </div>
+
+            <div id="hostSettings" class="create-section hidden">
                 <input type="number" id="matchCountInput" placeholder="Number of Matches" min="1" max="10" value="3" class="room-input">
                 <button id="createRoomBtn" class="menu-btn">Create Room</button>
             </div>
-            <div class="join-section">
+
+            <div id="joinSettings" class="join-section hidden">
                 <input type="text" id="roomCodeInput" placeholder="Enter Room Code" maxlength="6" class="room-input">
                 <button id="joinRoomBtn" class="menu-btn">Join Room</button>
             </div>
+
             <button id="backToMainBtn" class="back-btn">← Back to Main Menu</button>
         </div>
     </div>
