@@ -328,6 +328,7 @@ class TicTacToe {
                 this.showMessage(`Game started! You are ${this.player}`);
                 break;
             case 'gameState':
+                console.log('[WS] gameState received', data);
                 this.board = data.board;
                 this.currentPlayer = data.currentPlayer;
                 this.gameOver = data.gameOver;
@@ -355,7 +356,15 @@ class TicTacToe {
     handleCellClick(e) {
         const index = parseInt(e.target.dataset.index);
 
-        if (this.board[index] || this.gameOver) {
+        console.log('[click] index=', index, 'board_val=', this.board[index], 'gameOver=', this.gameOver, 'gameMode=', this.gameMode, 'ws=', this.ws && this.ws.readyState, 'gameId=', this.gameId, 'currentPlayer=', this.currentPlayer, 'player=', this.player);
+
+        if (this.board[index]) {
+            console.warn('[click] cell occupied, ignoring');
+            return;
+        }
+
+        if (this.gameOver) {
+            console.warn('[click] game is over, ignoring');
             return;
         }
 
