@@ -328,12 +328,12 @@ class TicTacToe {
             const val = this.board[index];
             if (val === 'X') {
                 cell.classList.add('x');
-                cell.innerHTML = '<i class="fa fa-times"></i>';
+                cell.textContent = 'X';
             } else if (val === 'O') {
                 cell.classList.add('o');
-                cell.innerHTML = '<i class="fa fa-circle-o"></i>';
+                cell.textContent = 'O';
             } else {
-                cell.innerHTML = '';
+                cell.textContent = '';
             }
         });
 

@@ -97,13 +97,14 @@ h1 {
 .cell {
     background: #1e1e1e;
     border: 2px solid #444;
-    font-size: 2.5em;
+    font-size: 3.5em; /* bigger symbols */
     cursor: pointer;
     display: flex;
     justify-content: center;
     align-items: center;
     transition: all 0.2s ease;
     color: #eee;
+    font-family: Arial, sans-serif; /* plain thin font for X/O */
 }
 
 .cell:hover {
@@ -112,13 +113,15 @@ h1 {
 }
 
 .cell.x {
-    color: #000;
-    text-shadow: none;
+    color: #00eaff; /* neon blue */
+    text-shadow: 0 0 8px #00eaff, 0 0 12px #00eaff;
+    font-weight: bold;
 }
 
 .cell.o {
-    color: #000;
-    text-shadow: none;
+    color: #ff007f; /* neon pink */
+    text-shadow: 0 0 8px #ff007f, 0 0 12px #ff007f;
+    font-weight: bold;
 }
 
 .cell:disabled {
