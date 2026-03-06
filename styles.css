@@ -59,9 +59,12 @@ body {
 }
 
 h1 {
-    color: #eee;
+    color: #00eaff;
     margin-bottom: 10px;
-    font-size: 2em;
+    font-size: 2.2em;
+    font-family: 'Orbitron', sans-serif;
+    text-shadow: 0 0 8px #00eaff, 0 0 16px #00eaff;
+    letter-spacing: 2px;
 }
 
 .info {
