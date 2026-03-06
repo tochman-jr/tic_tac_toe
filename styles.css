@@ -14,11 +14,27 @@ body {
 }
 
 .container {
+    display: inline-block;
     text-align: center;
     background: white;
     padding: 40px;
     border-radius: 15px;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    /* limit width to fit content so the board doesn’t extend too far */
+    max-width: 100%;
+}
+
+/* ensure board only takes the space it needs */
+.board {
+    display: grid;
+    grid-template-columns: repeat(3, 100px);
+    grid-template-rows: repeat(3, 100px);
+    gap: 5px;
+    margin: 30px auto;
+    background: #333;
+    padding: 5px;
+    border-radius: 10px;
+    width: max-content;
 }
 
 h1 {
@@ -176,6 +192,32 @@ h1 {
     border-color: #667eea;
 }
 
-.hidden {
-    display: none !important;
+.menu h2 {
+    color: #333;
+    margin-bottom: 20px;
+    font-size: 1.5em;
+}
+
+.back-btn {
+    margin-top: 15px;
+    padding: 8px 16px;
+    background: #666;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: all 0.3s ease;
+}
+
+.back-btn:hover {
+    background: #555;
+    transform: translateY(-1px);
+}
+
+.game-controls {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 20px;
 }

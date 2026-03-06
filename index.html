@@ -9,16 +9,27 @@
 <body>
     <div class="container">
         <h1>Multiplayer Tic Tac Toe</h1>
-        <p class="info">Play against another player online!</p>
         
-        <div id="menu" class="menu">
+        <!-- Main Menu -->
+        <div id="mainMenu" class="menu">
+            <h2>Choose Game Mode</h2>
+            <button id="aiBtn" class="menu-btn">🎯 Play vs AI</button>
+            <button id="localBtn" class="menu-btn">👥 Play Local (Same Device)</button>
+            <button id="onlineBtn" class="menu-btn">🌐 Play Online</button>
+        </div>
+
+        <!-- Online Menu -->
+        <div id="onlineMenu" class="menu hidden">
+            <h2>Online Multiplayer</h2>
             <button id="createRoomBtn" class="menu-btn">Create Room</button>
             <div class="join-section">
                 <input type="text" id="roomCodeInput" placeholder="Enter Room Code" maxlength="6" class="room-input">
                 <button id="joinRoomBtn" class="menu-btn">Join Room</button>
             </div>
+            <button id="backToMainBtn" class="back-btn">← Back to Main Menu</button>
         </div>
 
+        <!-- Game Board -->
         <div id="game" class="game hidden">
             <div class="board" id="board">
                 <div class="cell" data-index="0"></div>
@@ -32,9 +43,12 @@
                 <div class="cell" data-index="8"></div>
             </div>
 
-            <div class="status" id="status">Connecting to server...</div>
+            <div class="status" id="status">Choose a game mode to start!</div>
             
-            <button class="reset-btn" id="resetBtn">New Game</button>
+            <div class="game-controls">
+                <button class="reset-btn" id="resetBtn">New Game</button>
+                <button class="back-btn" id="backToMenuBtn">← Back to Menu</button>
+            </div>
         </div>
     </div>
 

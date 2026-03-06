@@ -3,6 +3,7 @@ class TicTacToe {
         this.board = Array(9).fill(null);
         this.currentPlayer = 'X';
         this.gameOver = false;
+        this.gameMode = null; // 'ai', 'local', 'online'
         this.player = null;
         this.opponent = null;
         this.gameId = null;
@@ -12,8 +13,57 @@ class TicTacToe {
     }
 
     init() {
-        this.setupMenuEventListeners();
+        this.setupMainMenuEventListeners();
+        this.showMainMenu();
+    }
+
+    setupMainMenuEventListeners() {
+        document.getElementById('aiBtn').addEventListener('click', () => this.startAIMode());
+        document.getElementById('localBtn').addEventListener('click', () => this.startLocalMode());
+        document.getElementById('onlineBtn').addEventListener('click', () => this.showOnlineMenu());
+        document.getElementById('backToMainBtn').addEventListener('click', () => this.showMainMenu());
+        document.getElementById('backToMenuBtn').addEventListener('click', () => this.backToMenu());
+    }
+
+    showMainMenu() {
+        document.getElementById('mainMenu').classList.remove('hidden');
+        document.getElementById('onlineMenu').classList.add('hidden');
+        document.getElementById('game').classList.add('hidden');
+        this.gameMode = null;
+    }
+
+    showOnlineMenu() {
+        document.getElementById('mainMenu').classList.add('hidden');
+        document.getElementById('onlineMenu').classList.remove('hidden');
+        document.getElementById('game').classList.add('hidden');
+        this.setupOnlineMenuEventListeners();
         this.connectToServer();
+    }
+
+    setupOnlineMenuEventListeners() {
+        document.getElementById('createRoomBtn').addEventListener('click', () => this.createRoom());
+        document.getElementById('joinRoomBtn').addEventListener('click', () => this.joinRoom());
+        document.getElementById('roomCodeInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                this.joinRoom();
+            }
+        });
+    }
+
+    startAIMode() {
+        this.gameMode = 'ai';
+        this.resetGame();
+        this.showGame();
+        this.setupGameEventListeners();
+        this.showMessage('Your turn (X)');
+    }
+
+    startLocalMode() {
+        this.gameMode = 'local';
+        this.resetGame();
+        this.showGame();
+        this.setupGameEventListeners();
+        this.showMessage(`Player ${this.currentPlayer}'s Turn`);
     }
 
     connectToServer() {
@@ -38,7 +88,7 @@ class TicTacToe {
         this.ws.onclose = () => {
             console.log('Disconnected from server');
             this.showMessage('Disconnected from server. Refresh to reconnect.');
-            this.showMenu();
+            this.showMainMenu();
         };
 
         this.ws.onerror = (error) => {
@@ -71,21 +121,70 @@ class TicTacToe {
         }
     }
 
-    handleCellClick(e) {
-        if (!this.ws || this.ws.readyState !== WebSocket.OPEN || !this.gameId) {
-            return;
+
+
+    aiMove() {
+        const bestMove = this.getBestMove();
+        this.board[bestMove] = 'O';
+        this.currentPlayer = 'X';
+        this.render();
+
+        if (this.checkWinner() || this.isBoardFull()) {
+            this.gameOver = true;
+            this.render();
         }
+    }
 
-        const index = parseInt(e.target.dataset.index);
+    getBestMove() {
+        // Use minimax algorithm for unbeatable AI
+        let bestScore = -Infinity;
+        let move = 0;
 
-        if (this.board[index] || this.gameOver || this.currentPlayer !== this.player) {
-            return;
+        for (let i = 0; i < 9; i++) {
+            if (this.board[i] === null) {
+                this.board[i] = 'O';
+                let score = this.minimax(0, false);
+                this.board[i] = null;
+
+                if (score > bestScore) {
+                    bestScore = score;
+                    move = i;
+                }
+            }
         }
+        return move;
+    }
 
-        this.ws.send(JSON.stringify({
-            type: 'move',
-            index: index
-        }));
+    minimax(depth, isMaximizing) {
+        const winner = this.checkWinner();
+
+        if (winner === 'O') return 10 - depth;
+        if (winner === 'X') return depth - 10;
+        if (this.isBoardFull()) return 0;
+
+        if (isMaximizing) {
+            let bestScore = -Infinity;
+            for (let i = 0; i < 9; i++) {
+                if (this.board[i] === null) {
+                    this.board[i] = 'O';
+                    let score = this.minimax(depth + 1, false);
+                    this.board[i] = null;
+                    bestScore = Math.max(score, bestScore);
+                }
+            }
+            return bestScore;
+        } else {
+            let bestScore = Infinity;
+            for (let i = 0; i < 9; i++) {
+                if (this.board[i] === null) {
+                    this.board[i] = 'X';
+                    let score = this.minimax(depth + 1, true);
+                    this.board[i] = null;
+                    bestScore = Math.min(score, bestScore);
+                }
+            }
+            return bestScore;
+        }
     }
 
     setupMenuEventListeners() {
@@ -142,6 +241,7 @@ class TicTacToe {
                 this.showMessage(data.message);
                 break;
             case 'gameStart':
+                this.gameMode = 'online';
                 this.gameId = data.gameId;
                 this.player = data.player;
                 this.opponent = data.opponent;
@@ -168,31 +268,47 @@ class TicTacToe {
         }
     }
 
-    showMenu() {
-        document.getElementById('menu').classList.remove('hidden');
-        document.getElementById('game').classList.add('hidden');
-    }
-
-    showGame() {
-        document.getElementById('menu').classList.add('hidden');
-        document.getElementById('game').classList.remove('hidden');
-    }
 
     handleCellClick(e) {
-        if (!this.ws || this.ws.readyState !== WebSocket.OPEN || !this.gameId) {
-            return;
-        }
-
         const index = parseInt(e.target.dataset.index);
 
-        if (this.board[index] || this.gameOver || this.currentPlayer !== this.player) {
+        if (this.board[index] || this.gameOver) {
             return;
         }
 
-        this.ws.send(JSON.stringify({
-            type: 'move',
-            index: index
-        }));
+        if (this.gameMode === 'online') {
+            if (!this.ws || this.ws.readyState !== WebSocket.OPEN || !this.gameId || this.currentPlayer !== this.player) {
+                return;
+            }
+            this.ws.send(JSON.stringify({
+                type: 'move',
+                index: index
+            }));
+        } else if (this.gameMode === 'local') {
+            this.board[index] = this.currentPlayer;
+            this.currentPlayer = this.currentPlayer === 'X' ? 'O' : 'X';
+            this.render();
+
+            if (this.checkWinner() || this.isBoardFull()) {
+                this.gameOver = true;
+                this.render();
+            }
+        } else if (this.gameMode === 'ai') {
+            if (this.currentPlayer !== 'X') {
+                return; // Not player's turn
+            }
+            this.board[index] = 'X';
+            this.currentPlayer = 'O';
+            this.render();
+
+            if (this.checkWinner() || this.isBoardFull()) {
+                this.gameOver = true;
+                this.render();
+            } else {
+                // AI's turn
+                setTimeout(() => this.aiMove(), 500);
+            }
+        }
     }
 
     render() {
@@ -210,26 +326,35 @@ class TicTacToe {
         });
 
         if (this.gameOver) {
-            const winner = this.checkWinnerState();
-            if (winner === 'X') {
-                statusEl.textContent = `🎉 Player ${winner} Wins!`;
-                statusEl.className = 'status winner';
-            } else if (winner === 'O') {
-                statusEl.textContent = `🎉 Player ${winner} Wins!`;
+            const winner = this.checkWinner();
+            if (winner) {
+                if (this.gameMode === 'ai' && winner === 'O') {
+                    statusEl.textContent = '😢 AI Wins!';
+                } else if (this.gameMode === 'online') {
+                    statusEl.textContent = `🎉 Player ${winner} Wins!`;
+                } else {
+                    statusEl.textContent = `🎉 Player ${winner} Wins!`;
+                }
                 statusEl.className = 'status winner';
             } else if (this.isBoardFull()) {
                 statusEl.textContent = "It's a Draw!";
                 statusEl.className = 'status draw';
             }
-        } else if (this.currentPlayer && this.player) {
-            const playerClass = this.currentPlayer === 'X' ? 'player-x' : 'player-o';
-            const isMyTurn = this.currentPlayer === this.player;
-            statusEl.innerHTML = `Player <span class="${playerClass}">${this.currentPlayer}</span>'s Turn ${isMyTurn ? '(Your turn)' : ''}`;
+        } else {
+            if (this.gameMode === 'ai') {
+                statusEl.textContent = this.currentPlayer === 'X' ? 'Your turn (X)' : 'AI is thinking...';
+            } else if (this.gameMode === 'online' && this.player) {
+                const playerClass = this.currentPlayer === 'X' ? 'player-x' : 'player-o';
+                const isMyTurn = this.currentPlayer === this.player;
+                statusEl.innerHTML = `Player <span class="${playerClass}">${this.currentPlayer}</span>'s Turn ${isMyTurn ? '(Your turn)' : ''}`;
+            } else {
+                statusEl.textContent = `Player ${this.currentPlayer}'s Turn`;
+            }
             statusEl.className = 'status';
         }
     }
 
-    checkWinnerState() {
+    checkWinner() {
         const lines = [
             [0, 1, 2],
             [3, 4, 5],
@@ -258,6 +383,45 @@ class TicTacToe {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             this.ws.send(JSON.stringify({ type: 'reset' }));
         }
+    }
+
+    showGame() {
+        document.getElementById('mainMenu').classList.add('hidden');
+        document.getElementById('onlineMenu').classList.add('hidden');
+        document.getElementById('game').classList.remove('hidden');
+    }
+
+    backToMenu() {
+        if (this.gameMode === 'online') {
+            this.showOnlineMenu();
+        } else {
+            this.showMainMenu();
+        }
+        this.resetGame();
+    }
+
+    resetGame() {
+        this.board = Array(9).fill(null);
+        this.currentPlayer = 'X';
+        this.gameOver = false;
+        this.gameId = null;
+        this.player = null;
+        this.opponent = null;
+        this.render();
+    }
+
+    setupGameEventListeners() {
+        const cells = document.querySelectorAll('.cell');
+        cells.forEach(cell => {
+            cell.addEventListener('click', (e) => this.handleCellClick(e));
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            if (this.gameMode === 'online') {
+                this.reset();
+            }
+            this.resetGame();
+        });
     }
 
     showMessage(message) {
