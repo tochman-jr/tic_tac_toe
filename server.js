@@ -14,7 +14,7 @@ const wss = new WebSocket.Server({ server: app.listen(port, () => {
 }) });
 
 let games = {}; // Store game states
-let rooms = {}; // Store room information: { code: { players: [], gameId: null } }
+let rooms = {}; // Store room information: { code: { players: [], gameId: null, scores: { player1: {wins:0, losses:0, draws:0}, player2: {wins:0, losses:0, draws:0} }, starter: 'player1' } }
 
 wss.on('connection', (ws) => {
      // connection opened
@@ -57,7 +57,12 @@ function handleCreateRoom(ws) {
     const roomCode = generateRoomCode();
     rooms[roomCode] = {
         players: [ws],
-        gameId: null
+        gameId: null,
+        scores: {
+            player1: { wins: 0, losses: 0, draws: 0 },
+            player2: { wins: 0, losses: 0, draws: 0 }
+        },
+        starter: 'player1'
     };
     ws.roomCode = roomCode;
     ws.send(JSON.stringify({
@@ -110,29 +115,30 @@ function startGame(room) {
         playerSymbols: {}
     };
 
-    // Assign player symbols
-    room.players[0].id = 'player1';
-    room.players[1].id = 'player2';
+    // Assign player symbols based on starter
+    const starter = room.starter;
+    const second = starter === 'player1' ? 'player2' : 'player1';
+    room.players[0].id = starter;
+    room.players[1].id = second;
+    games[gameId].playerSymbols[starter] = 'X';
+    games[gameId].playerSymbols[second] = 'O';
+
     // remember gameId on each websocket so moves can be associated
     room.players.forEach(ws => ws.gameId = gameId);
-    games[gameId].playerSymbols[room.players[0].id] = 'X';
-    games[gameId].playerSymbols[room.players[1].id] = 'O';
-
-     // starting game
 
     // Send game start to both players
     room.players[0].send(JSON.stringify({
         type: 'gameStart',
         gameId: gameId,
-        player: 'X',
-        opponent: 'O'
+        player: games[gameId].playerSymbols[room.players[0].id],
+        opponent: games[gameId].playerSymbols[room.players[1].id]
     }));
 
     room.players[1].send(JSON.stringify({
         type: 'gameStart',
         gameId: gameId,
-        player: 'O',
-        opponent: 'X'
+        player: games[gameId].playerSymbols[room.players[1].id],
+        opponent: games[gameId].playerSymbols[room.players[0].id]
     }));
 
     broadcastGameState(gameId);
@@ -167,6 +173,21 @@ function handleMove(ws, data) {
 
     if (checkWinner(game.board) || isBoardFull(game.board)) {
         game.gameOver = true;
+        // Update scores
+        const winner = checkWinner(game.board);
+        const room = rooms[ws.roomCode];
+        if (winner) {
+            const winnerId = Object.keys(game.playerSymbols).find(id => game.playerSymbols[id] === winner);
+            const loserId = Object.keys(game.playerSymbols).find(id => game.playerSymbols[id] !== winner);
+            room.scores[winnerId].wins++;
+            room.scores[loserId].losses++;
+        } else {
+            // Draw
+            room.scores.player1.draws++;
+            room.scores.player2.draws++;
+        }
+        // Alternate starter
+        room.starter = room.starter === 'player1' ? 'player2' : 'player1';
     }
 
     broadcastGameState(gameId);
@@ -214,12 +235,14 @@ function broadcastGameState(gameId) {
     const game = games[gameId];
     if (!game) return;
 
+    const room = rooms[Object.keys(rooms).find(code => rooms[code].gameId === gameId)];
     const gameState = {
         type: 'gameState',
         board: game.board,
         currentPlayer: game.currentPlayer,
         gameOver: game.gameOver,
-        winner: game.gameOver ? checkWinner(game.board) : null
+        winner: game.gameOver ? checkWinner(game.board) : null,
+        scores: room.scores
     };
      // broadcasting state
 

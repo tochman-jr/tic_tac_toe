@@ -128,6 +128,14 @@ h1 {
     cursor: not-allowed;
 }
 
+.scores {
+    display: flex;
+    justify-content: space-around;
+    margin: 20px 0;
+    font-size: 1.2em;
+    color: #eee;
+}
+
 .status {
     font-size: 1.8em;
     color: #333;

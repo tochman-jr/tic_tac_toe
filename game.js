@@ -260,6 +260,9 @@ class TicTacToe {
                 this.board = data.board;
                 this.currentPlayer = data.currentPlayer;
                 this.gameOver = data.gameOver;
+                if (data.scores) {
+                    this.renderScores(data.scores);
+                }
                 this.render();
                 break;
             case 'opponentDisconnected':
@@ -404,6 +407,7 @@ class TicTacToe {
 
     backToMenu() {
         this.resetGame();
+        document.getElementById('scores').style.display = 'none';
         if (this.gameMode === 'online') {
             this.showOnlineMenu();
         } else {
@@ -435,10 +439,10 @@ class TicTacToe {
         });
     }
 
-    showMessage(message) {
-        const statusEl = document.getElementById('status');
-        statusEl.textContent = message;
-        statusEl.className = 'status';
+    renderScores(scores) {
+        document.getElementById('scores').style.display = 'flex';
+        document.getElementById('player1Score').textContent = `Player X: ${scores.player1.wins}W ${scores.player1.losses}L ${scores.player1.draws}D`;
+        document.getElementById('player2Score').textContent = `Player O: ${scores.player2.wins}W ${scores.player2.losses}L ${scores.player2.draws}D`;
     }
 }
 
