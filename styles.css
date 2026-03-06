@@ -133,7 +133,12 @@ h1 {
     justify-content: space-around;
     margin: 20px 0;
     font-size: 1.2em;
-    color: #eee;
+    color: #000;
+}
+
+.scores > div {
+    color: #000;
+    font-weight: 600;
 }
 
 .status {
