@@ -17,18 +17,13 @@ class TicTacToe {
     }
 
     connectToServer() {
-        // For Netlify deployment, use polling instead of WebSockets
-        this.usePolling = window.location.hostname !== 'localhost';
-        
-        if (this.usePolling) {
-            this.startPolling();
-        } else {
-            this.connectWebSocket();
-        }
-    }
+        // Connect to Railway WebSocket server
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const host = window.location.hostname;
+        const port = window.location.port ? `:${window.location.port}` : '';
+        const wsUrl = `${protocol}//${host}${port}`;
 
-    connectWebSocket() {
-        this.ws = new WebSocket('ws://localhost:3000');
+        this.ws = new WebSocket(wsUrl);
 
         this.ws.onopen = () => {
             console.log('Connected to server');
@@ -52,99 +47,45 @@ class TicTacToe {
         };
     }
 
-    startPolling() {
-        // Polling implementation for static hosting
-        this.pollingInterval = setInterval(() => {
-            if (this.gameId) {
-                this.pollGameState();
-            }
-        }, 1000); // Poll every second
-        
-        this.showMessage('Connected! Choose an option below.');
-    }
-
-    async pollGameState() {
-        try {
-            const response = await fetch(`/api/game/${this.gameId}`);
-            if (response.ok) {
-                const data = await response.json();
-                this.handleServerMessage(data);
-            }
-        } catch (error) {
-            console.error('Polling error:', error);
-        }
-    }
-
-    async createRoom() {
-        if (this.usePolling) {
-            try {
-                const response = await fetch('/api/rooms', { method: 'POST' });
-                const data = await response.json();
-                this.handleServerMessage(data);
-            } catch (error) {
-                this.showMessage('Error creating room. Please try again.');
-            }
-        } else if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+    createRoom() {
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             this.ws.send(JSON.stringify({ type: 'createRoom' }));
+            document.getElementById('createRoomBtn').disabled = true;
+            document.getElementById('joinRoomBtn').disabled = true;
+            this.showMessage('Creating room...');
         }
-        document.getElementById('createRoomBtn').disabled = true;
-        document.getElementById('joinRoomBtn').disabled = true;
-        this.showMessage('Creating room...');
     }
 
-    async joinRoom() {
+    joinRoom() {
         const code = document.getElementById('roomCodeInput').value.trim().toUpperCase();
         if (!code) {
             this.showMessage('Please enter a room code.');
             return;
         }
 
-        if (this.usePolling) {
-            try {
-                const response = await fetch(`/api/rooms/${code}`, { method: 'POST' });
-                const data = await response.json();
-                this.handleServerMessage(data);
-            } catch (error) {
-                this.showMessage('Error joining room. Please check the code.');
-            }
-        } else if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             this.ws.send(JSON.stringify({ type: 'joinRoom', code: code }));
+            document.getElementById('createRoomBtn').disabled = true;
+            document.getElementById('joinRoomBtn').disabled = true;
+            this.showMessage('Joining room...');
         }
-        document.getElementById('createRoomBtn').disabled = true;
-        document.getElementById('joinRoomBtn').disabled = true;
-        this.showMessage('Joining room...');
     }
 
     handleCellClick(e) {
-        if (this.usePolling) {
-            if (!this.gameId) return;
-            
-            const index = parseInt(e.target.dataset.index);
-            if (this.board[index] || this.gameOver || this.currentPlayer !== this.player) {
-                return;
-            }
-
-            fetch(`/api/game/${this.gameId}/move`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ index: index })
-            }).catch(error => console.error('Move error:', error));
-        } else {
-            if (!this.ws || this.ws.readyState !== WebSocket.OPEN || !this.gameId) {
-                return;
-            }
-
-            const index = parseInt(e.target.dataset.index);
-
-            if (this.board[index] || this.gameOver || this.currentPlayer !== this.player) {
-                return;
-            }
-
-            this.ws.send(JSON.stringify({
-                type: 'move',
-                index: index
-            }));
+        if (!this.ws || this.ws.readyState !== WebSocket.OPEN || !this.gameId) {
+            return;
         }
+
+        const index = parseInt(e.target.dataset.index);
+
+        if (this.board[index] || this.gameOver || this.currentPlayer !== this.player) {
+            return;
+        }
+
+        this.ws.send(JSON.stringify({
+            type: 'move',
+            index: index
+        }));
     }
 
     setupMenuEventListeners() {
