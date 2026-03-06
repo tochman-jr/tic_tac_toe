@@ -61,18 +61,30 @@ class TicTacToe {
             if (onlineChoice) onlineChoice.classList.add('hidden');
             if (hostSettings) hostSettings.classList.remove('hidden');
             if (joinSettings) joinSettings.classList.add('hidden');
+            // ensure buttons are enabled when showing host settings
+            const createBtn = document.getElementById('createRoomBtn');
+            const joinRoomBtn = document.getElementById('joinRoomBtn');
+            if (createBtn) createBtn.disabled = false;
+            if (joinRoomBtn) joinRoomBtn.disabled = false;
         });
 
         if (joinBtn) joinBtn.addEventListener('click', () => {
             if (onlineChoice) onlineChoice.classList.add('hidden');
             if (joinSettings) joinSettings.classList.remove('hidden');
             if (hostSettings) hostSettings.classList.add('hidden');
+            // ensure buttons are enabled when showing join settings and focus input
+            const createBtn = document.getElementById('createRoomBtn');
+            const joinRoomBtn = document.getElementById('joinRoomBtn');
+            if (createBtn) createBtn.disabled = false;
+            if (joinRoomBtn) joinRoomBtn.disabled = false;
+            const roomInput = document.getElementById('roomCodeInput');
+            if (roomInput) roomInput.focus();
         });
 
         const createBtn = document.getElementById('createRoomBtn');
         const joinRoomBtn = document.getElementById('joinRoomBtn');
         if (createBtn) createBtn.addEventListener('click', () => this.createRoom());
-        if (joinRoomBtn) joinRoomBtn.addEventListener('click', () => this.joinRoom());
+        if (joinRoomBtn) joinRoomBtn.addEventListener('click', () => { console.log('[UI] joinRoomBtn clicked'); this.joinRoom(); });
 
         const roomInput = document.getElementById('roomCodeInput');
         if (roomInput) roomInput.addEventListener('keypress', (e) => {
@@ -276,9 +288,12 @@ class TicTacToe {
     }
 
     joinRoom() {
-        const code = document.getElementById('roomCodeInput').value.trim().toUpperCase();
+        const codeEl = document.getElementById('roomCodeInput');
+        const code = codeEl ? codeEl.value.trim().toUpperCase() : '';
+        console.log('[UI] joinRoom requested, code=', code, 'ws=', this.ws && this.ws.readyState);
         if (!code) {
             this.showMessage('Please enter a room code.');
+            if (codeEl) codeEl.focus();
             return;
         }
 
@@ -287,6 +302,8 @@ class TicTacToe {
             document.getElementById('createRoomBtn').disabled = true;
             document.getElementById('joinRoomBtn').disabled = true;
             this.showMessage('Joining room...');
+        } else {
+            this.showMessage('Not connected to server.');
         }
     }
 
