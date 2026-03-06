@@ -241,6 +241,13 @@ class TicTacToe {
             const payload = { type: 'createRoom' };
             if (matchCount) payload.matchCount = matchCount;
 
+            // reveal host code area immediately with a placeholder while server generates the code
+            const hostRoomCode = document.getElementById('hostRoomCode');
+            const codeDisplay = document.getElementById('roomCodeDisplay');
+            if (codeDisplay) codeDisplay.textContent = 'Waiting...';
+            if (hostRoomCode) hostRoomCode.classList.remove('hidden');
+
+            console.log('[WS] creating room, payload=', payload);
             this.ws.send(JSON.stringify(payload));
             document.getElementById('createRoomBtn').disabled = true;
             document.getElementById('joinRoomBtn').disabled = true;
