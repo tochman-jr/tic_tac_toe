@@ -11,21 +11,31 @@
         <h1>Multiplayer Tic Tac Toe</h1>
         <p class="info">Play against another player online!</p>
         
-        <div class="board" id="board">
-            <div class="cell" data-index="0"></div>
-            <div class="cell" data-index="1"></div>
-            <div class="cell" data-index="2"></div>
-            <div class="cell" data-index="3"></div>
-            <div class="cell" data-index="4"></div>
-            <div class="cell" data-index="5"></div>
-            <div class="cell" data-index="6"></div>
-            <div class="cell" data-index="7"></div>
-            <div class="cell" data-index="8"></div>
+        <div id="menu" class="menu">
+            <button id="createRoomBtn" class="menu-btn">Create Room</button>
+            <div class="join-section">
+                <input type="text" id="roomCodeInput" placeholder="Enter Room Code" maxlength="6" class="room-input">
+                <button id="joinRoomBtn" class="menu-btn">Join Room</button>
+            </div>
         </div>
 
-        <div class="status" id="status">Player X's Turn</div>
-        
-        <button class="reset-btn" id="resetBtn">New Game</button>
+        <div id="game" class="game hidden">
+            <div class="board" id="board">
+                <div class="cell" data-index="0"></div>
+                <div class="cell" data-index="1"></div>
+                <div class="cell" data-index="2"></div>
+                <div class="cell" data-index="3"></div>
+                <div class="cell" data-index="4"></div>
+                <div class="cell" data-index="5"></div>
+                <div class="cell" data-index="6"></div>
+                <div class="cell" data-index="7"></div>
+                <div class="cell" data-index="8"></div>
+            </div>
+
+            <div class="status" id="status">Connecting to server...</div>
+            
+            <button class="reset-btn" id="resetBtn">New Game</button>
+        </div>
     </div>
 
     <script src="game.js"></script>

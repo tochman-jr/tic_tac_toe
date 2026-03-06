@@ -14,7 +14,7 @@ const wss = new WebSocket.Server({ server: app.listen(port, () => {
 }) });
 
 let games = {}; // Store game states
-let waitingPlayers = []; // Queue for players waiting to join
+let rooms = {}; // Store room information: { code: { players: [], gameId: null } }
 
 wss.on('connection', (ws) => {
     console.log('New client connected');
@@ -23,8 +23,11 @@ wss.on('connection', (ws) => {
         const data = JSON.parse(message.toString());
 
         switch (data.type) {
-            case 'join':
-                handleJoin(ws, data);
+            case 'createRoom':
+                handleCreateRoom(ws);
+                break;
+            case 'joinRoom':
+                handleJoinRoom(ws, data.code);
                 break;
             case 'move':
                 handleMove(ws, data);
@@ -41,53 +44,85 @@ wss.on('connection', (ws) => {
     });
 });
 
-function handleJoin(ws, data) {
-    if (waitingPlayers.length > 0) {
-        // Start a new game with two players
-        const player1 = waitingPlayers.shift();
-        const player2 = ws;
+function handleCreateRoom(ws) {
+    const roomCode = generateRoomCode();
+    rooms[roomCode] = {
+        players: [ws],
+        gameId: null
+    };
+    ws.roomCode = roomCode;
+    ws.send(JSON.stringify({
+        type: 'roomCreated',
+        code: roomCode
+    }));
+}
 
-        const gameId = generateGameId();
-        games[gameId] = {
-            players: [player1, player2],
-            board: Array(9).fill(null),
-            currentPlayer: 'X',
-            gameOver: false,
-            playerSymbols: { [player1.id]: 'X', [player2.id]: 'O' }
-        };
-
-        player1.gameId = gameId;
-        player2.gameId = gameId;
-
-        // Assign player IDs
-        player1.id = 'player1';
-        player2.id = 'player2';
-
-        // Send game start to both players
-        player1.send(JSON.stringify({
-            type: 'gameStart',
-            gameId: gameId,
-            player: 'X',
-            opponent: 'O'
-        }));
-
-        player2.send(JSON.stringify({
-            type: 'gameStart',
-            gameId: gameId,
-            player: 'O',
-            opponent: 'X'
-        }));
-
-        broadcastGameState(gameId);
-    } else {
-        // Add to waiting queue
-        ws.id = 'waiting';
-        waitingPlayers.push(ws);
+function handleJoinRoom(ws, code) {
+    const room = rooms[code];
+    if (!room) {
         ws.send(JSON.stringify({
-            type: 'waiting',
+            type: 'error',
+            message: 'Room not found'
+        }));
+        return;
+    }
+
+    if (room.players.length >= 2) {
+        ws.send(JSON.stringify({
+            type: 'error',
+            message: 'Room is full'
+        }));
+        return;
+    }
+
+    room.players.push(ws);
+    ws.roomCode = code;
+
+    // Start the game when two players are in the room
+    if (room.players.length === 2) {
+        startGame(room);
+    } else {
+        ws.send(JSON.stringify({
+            type: 'waitingInRoom',
             message: 'Waiting for another player...'
         }));
     }
+}
+
+function startGame(room) {
+    const gameId = generateGameId();
+    room.gameId = gameId;
+
+    games[gameId] = {
+        players: room.players,
+        board: Array(9).fill(null),
+        currentPlayer: 'X',
+        gameOver: false,
+        playerSymbols: {}
+    };
+
+    // Assign player symbols
+    room.players[0].id = 'player1';
+    room.players[1].id = 'player2';
+    games[gameId].playerSymbols[room.players[0].id] = 'X';
+    games[gameId].playerSymbols[room.players[1].id] = 'O';
+
+    // Send game start to both players
+    room.players[0].send(JSON.stringify({
+        type: 'gameStart',
+        gameId: gameId,
+        player: 'X',
+        opponent: 'O'
+    }));
+
+    room.players[1].send(JSON.stringify({
+        type: 'gameStart',
+        gameId: gameId,
+        player: 'O',
+        opponent: 'X'
+    }));
+
+    broadcastGameState(gameId);
 }
 
 function handleMove(ws, data) {
@@ -127,24 +162,26 @@ function handleReset(ws, data) {
 }
 
 function handleDisconnect(ws) {
-    // Remove from waiting players
-    const index = waitingPlayers.indexOf(ws);
-    if (index > -1) {
-        waitingPlayers.splice(index, 1);
-    }
+    // Remove from room
+    if (ws.roomCode) {
+        const room = rooms[ws.roomCode];
+        if (room) {
+            const index = room.players.indexOf(ws);
+            if (index > -1) {
+                room.players.splice(index, 1);
+            }
 
-    // Handle game disconnection
-    if (ws.gameId) {
-        const game = games[ws.gameId];
-        if (game) {
-            // Notify the other player
-            const otherPlayer = game.players.find(p => p !== ws);
-            if (otherPlayer) {
-                otherPlayer.send(JSON.stringify({
+            // If room is empty, delete it
+            if (room.players.length === 0) {
+                delete rooms[ws.roomCode];
+            } else if (room.gameId) {
+                // Notify remaining player
+                const remainingPlayer = room.players[0];
+                remainingPlayer.send(JSON.stringify({
                     type: 'opponentDisconnected'
                 }));
+                delete games[room.gameId];
             }
-            delete games[ws.gameId];
         }
     }
 }
@@ -188,4 +225,8 @@ function isBoardFull(board) {
 
 function generateGameId() {
     return Math.random().toString(36).substr(2, 9);
+}
+
+function generateRoomCode() {
+    return Math.random().toString(36).substr(2, 6).toUpperCase();
 }

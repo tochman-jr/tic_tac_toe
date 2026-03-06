@@ -7,13 +7,13 @@ class TicTacToe {
         this.opponent = null;
         this.gameId = null;
         this.ws = null;
+        this.roomCode = null;
         this.init();
     }
 
     init() {
+        this.setupMenuEventListeners();
         this.connectToServer();
-        this.setupEventListeners();
-        this.render();
     }
 
     connectToServer() {
@@ -21,7 +21,7 @@ class TicTacToe {
 
         this.ws.onopen = () => {
             console.log('Connected to server');
-            this.ws.send(JSON.stringify({ type: 'join' }));
+            this.showMessage('Connected! Choose an option below.');
         };
 
         this.ws.onmessage = (event) => {
@@ -32,22 +32,74 @@ class TicTacToe {
         this.ws.onclose = () => {
             console.log('Disconnected from server');
             this.showMessage('Disconnected from server. Refresh to reconnect.');
+            this.showMenu();
         };
 
         this.ws.onerror = (error) => {
             console.error('WebSocket error:', error);
+            this.showMessage('Connection error. Please check if the server is running.');
         };
+    }
+
+    setupMenuEventListeners() {
+        document.getElementById('createRoomBtn').addEventListener('click', () => this.createRoom());
+        document.getElementById('joinRoomBtn').addEventListener('click', () => this.joinRoom());
+        document.getElementById('roomCodeInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                this.joinRoom();
+            }
+        });
+    }
+
+    setupEventListeners() {
+        const cells = document.querySelectorAll('.cell');
+        cells.forEach(cell => {
+            cell.addEventListener('click', (e) => this.handleCellClick(e));
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', () => this.reset());
+    }
+
+    createRoom() {
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            this.ws.send(JSON.stringify({ type: 'createRoom' }));
+            document.getElementById('createRoomBtn').disabled = true;
+            document.getElementById('joinRoomBtn').disabled = true;
+            this.showMessage('Creating room...');
+        }
+    }
+
+    joinRoom() {
+        const code = document.getElementById('roomCodeInput').value.trim().toUpperCase();
+        if (!code) {
+            this.showMessage('Please enter a room code.');
+            return;
+        }
+
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            this.ws.send(JSON.stringify({ type: 'joinRoom', code: code }));
+            document.getElementById('createRoomBtn').disabled = true;
+            document.getElementById('joinRoomBtn').disabled = true;
+            this.showMessage('Joining room...');
+        }
     }
 
     handleServerMessage(data) {
         switch (data.type) {
-            case 'waiting':
+            case 'roomCreated':
+                this.roomCode = data.code;
+                this.showMessage(`Room created! Share this code: ${this.roomCode}`);
+                document.getElementById('roomCodeInput').value = this.roomCode;
+                break;
+            case 'waitingInRoom':
                 this.showMessage(data.message);
                 break;
             case 'gameStart':
                 this.gameId = data.gameId;
                 this.player = data.player;
                 this.opponent = data.opponent;
+                this.showGame();
+                this.setupEventListeners();
                 this.showMessage(`Game started! You are ${this.player}`);
                 break;
             case 'gameState':
@@ -61,16 +113,22 @@ class TicTacToe {
                 this.gameOver = true;
                 this.render();
                 break;
+            case 'error':
+                this.showMessage(data.message);
+                document.getElementById('createRoomBtn').disabled = false;
+                document.getElementById('joinRoomBtn').disabled = false;
+                break;
         }
     }
 
-    setupEventListeners() {
-        const cells = document.querySelectorAll('.cell');
-        cells.forEach(cell => {
-            cell.addEventListener('click', (e) => this.handleCellClick(e));
-        });
+    showMenu() {
+        document.getElementById('menu').classList.remove('hidden');
+        document.getElementById('game').classList.add('hidden');
+    }
 
-        document.getElementById('resetBtn').addEventListener('click', () => this.reset());
+    showGame() {
+        document.getElementById('menu').classList.add('hidden');
+        document.getElementById('game').classList.remove('hidden');
     }
 
     handleCellClick(e) {
