@@ -78,23 +78,30 @@ class TicTacToe {
         this.ws = new WebSocket(wsUrl);
 
         this.ws.onopen = () => {
-            console.log('Connected to server');
+            console.log('[WS] open');
             this.showMessage('Connected! Choose an option below.');
         };
 
         this.ws.onmessage = (event) => {
-            const data = JSON.parse(event.data);
+            console.log('[WS] message received', event.data);
+            let data;
+            try {
+                data = JSON.parse(event.data);
+            } catch (err) {
+                console.error('[WS] failed to parse message', err);
+                return;
+            }
             this.handleServerMessage(data);
         };
 
-        this.ws.onclose = () => {
-            console.log('Disconnected from server');
+        this.ws.onclose = (event) => {
+            console.log('[WS] close', event);
             this.showMessage('Disconnected from server. Refresh to reconnect.');
             this.showMainMenu();
         };
 
         this.ws.onerror = (error) => {
-            console.error('WebSocket error:', error);
+            console.error('[WS] error', error);
             this.showMessage('Connection error. Please check if the server is running.');
         };
     }
@@ -233,6 +240,7 @@ class TicTacToe {
     }
 
     handleServerMessage(data) {
+        console.log('[WS] handling server message', data);
         switch (data.type) {
             case 'roomCreated':
                 this.roomCode = data.code;
@@ -268,6 +276,8 @@ class TicTacToe {
                 document.getElementById('createRoomBtn').disabled = false;
                 document.getElementById('joinRoomBtn').disabled = false;
                 break;
+            default:
+                console.warn('[WS] unknown message type', data.type);
         }
     }
 
@@ -283,19 +293,9 @@ class TicTacToe {
             if (!this.ws || this.ws.readyState !== WebSocket.OPEN || !this.gameId || this.currentPlayer !== this.player) {
                 return;
             }
-            // optimistic update so user sees move immediately
-            this.board[index] = this.currentPlayer;
-            this.currentPlayer = this.currentPlayer === 'X' ? 'O' : 'X';
-            this.render();
-            if (this.checkWinner() || this.isBoardFull()) {
-                this.gameOver = true;
-                this.render();
-            }
-
-            this.ws.send(JSON.stringify({
-                type: 'move',
-                index: index
-            }));
+            const msg = { type: 'move', index };
+            console.log('[WS] sending move', msg);
+            this.ws.send(JSON.stringify(msg));
         } else if (this.gameMode === 'local') {
             this.board[index] = this.currentPlayer;
             this.currentPlayer = this.currentPlayer === 'X' ? 'O' : 'X';

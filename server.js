@@ -17,10 +17,17 @@ let games = {}; // Store game states
 let rooms = {}; // Store room information: { code: { players: [], gameId: null } }
 
 wss.on('connection', (ws) => {
-    console.log('New client connected');
+    console.log('[WS] new connection');
 
     ws.on('message', (message) => {
-        const data = JSON.parse(message.toString());
+        console.log('[WS] received message', message.toString());
+        let data;
+        try {
+            data = JSON.parse(message.toString());
+        } catch (err) {
+            console.error('[WS] invalid JSON', err);
+            return;
+        }
 
         switch (data.type) {
             case 'createRoom':
@@ -35,11 +42,13 @@ wss.on('connection', (ws) => {
             case 'reset':
                 handleReset(ws, data);
                 break;
+            default:
+                console.warn('[WS] unknown type', data.type);
         }
     });
 
     ws.on('close', () => {
-        console.log('Client disconnected');
+        console.log('[WS] connection closed');
         handleDisconnect(ws);
     });
 });
@@ -128,13 +137,24 @@ function startGame(room) {
 function handleMove(ws, data) {
     const gameId = ws.gameId;
     const game = games[gameId];
+    console.log('[WS] handleMove', { gameId, wsId: ws.id, data });
 
-    if (!game || game.gameOver || game.currentPlayer !== game.playerSymbols[ws.id]) {
+    if (!game) {
+        console.warn('[WS] move ignored: no game');
+        return;
+    }
+    if (game.gameOver) {
+        console.warn('[WS] move ignored: game over');
+        return;
+    }
+    if (game.currentPlayer !== game.playerSymbols[ws.id]) {
+        console.warn('[WS] move ignored: not player turn', {currentPlayer: game.currentPlayer, symbol: game.playerSymbols[ws.id]});
         return;
     }
 
     const index = data.index;
     if (game.board[index] !== null) {
+        console.warn('[WS] move ignored: cell occupied', index);
         return;
     }
 
