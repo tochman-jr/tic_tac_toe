@@ -59,11 +59,11 @@ body {
 }
 
 h1 {
-    color: #00eaff;
+    color: #000 !important;
     margin-bottom: 10px;
     font-size: 2.2em;
     font-family: 'Orbitron', sans-serif;
-    text-shadow: 0 0 8px #00eaff, 0 0 16px #00eaff;
+    text-shadow: none !important;
     letter-spacing: 2px;
 }
 
@@ -74,12 +74,12 @@ h1 {
 }
 
 .player-x {
-    color: #667eea;
+    color: #000;
     font-weight: bold;
 }
 
 .player-o {
-    color: #764ba2;
+    color: #000;
     font-weight: bold;
 }
 
@@ -112,13 +112,13 @@ h1 {
 }
 
 .cell.x {
-    color: #00eaff;
-    text-shadow: 0 0 10px #00eaff;
+    color: #000;
+    text-shadow: none;
 }
 
 .cell.o {
-    color: #ff007f;
-    text-shadow: 0 0 10px #ff007f;
+    color: #000;
+    text-shadow: none;
 }
 
 .cell:disabled {

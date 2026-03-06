@@ -341,11 +341,11 @@ class TicTacToe {
             const winner = this.checkWinner();
             if (winner) {
                 if (this.gameMode === 'ai' && winner === 'O') {
-                    statusEl.textContent = '😢 AI Wins!';
+                    statusEl.textContent = 'AI Wins!';
                 } else if (this.gameMode === 'online') {
-                    statusEl.textContent = `🎉 Player ${winner} Wins!`;
+                    statusEl.textContent = `Player ${winner} Wins!`;
                 } else {
-                    statusEl.textContent = `🎉 Player ${winner} Wins!`;
+                    statusEl.textContent = `Player ${winner} Wins!`;
                 }
                 statusEl.className = 'status winner';
             } else if (this.isBoardFull()) {
