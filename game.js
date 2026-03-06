@@ -23,85 +23,17 @@ class TicTacToe {
     handleCellClick(e) {
         const index = parseInt(e.target.dataset.index);
         
-        if (this.board[index] || this.gameOver || this.currentPlayer !== 'X') {
+        if (this.board[index] || this.gameOver) {
             return;
         }
 
-        this.board[index] = 'X';
-        this.currentPlayer = 'O';
+        this.board[index] = this.currentPlayer;
+        this.currentPlayer = this.currentPlayer === 'X' ? 'O' : 'X';
         this.render();
 
         if (this.checkWinner() || this.isBoardFull()) {
             this.gameOver = true;
             this.render();
-            return;
-        }
-
-        // AI makes move after a slight delay for better UX
-        setTimeout(() => this.aiMove(), 500);
-    }
-
-    aiMove() {
-        const bestMove = this.getBestMove();
-        this.board[bestMove] = 'O';
-        this.currentPlayer = 'X';
-        this.render();
-
-        if (this.checkWinner() || this.isBoardFull()) {
-            this.gameOver = true;
-            this.render();
-        }
-    }
-
-    getBestMove() {
-        // Use minimax algorithm for unbeatable AI
-        let bestScore = -Infinity;
-        let move = 0;
-
-        for (let i = 0; i < 9; i++) {
-            if (this.board[i] === null) {
-                this.board[i] = 'O';
-                let score = this.minimax(0, false);
-                this.board[i] = null;
-
-                if (score > bestScore) {
-                    bestScore = score;
-                    move = i;
-                }
-            }
-        }
-        return move;
-    }
-
-    minimax(depth, isMaximizing) {
-        const winner = this.checkWinnerState();
-        
-        if (winner === 'O') return 10 - depth;
-        if (winner === 'X') return depth - 10;
-        if (this.isBoardFull()) return 0;
-
-        if (isMaximizing) {
-            let bestScore = -Infinity;
-            for (let i = 0; i < 9; i++) {
-                if (this.board[i] === null) {
-                    this.board[i] = 'O';
-                    let score = this.minimax(depth + 1, false);
-                    this.board[i] = null;
-                    bestScore = Math.max(score, bestScore);
-                }
-            }
-            return bestScore;
-        } else {
-            let bestScore = Infinity;
-            for (let i = 0; i < 9; i++) {
-                if (this.board[i] === null) {
-                    this.board[i] = 'X';
-                    let score = this.minimax(depth + 1, true);
-                    this.board[i] = null;
-                    bestScore = Math.min(score, bestScore);
-                }
-            }
-            return bestScore;
         }
     }
 
@@ -151,17 +83,17 @@ class TicTacToe {
         if (this.gameOver) {
             const winner = this.checkWinnerState();
             if (winner === 'X') {
-                statusEl.textContent = '🎉 You Win!';
+                statusEl.textContent = '🎉 Player X Wins!';
                 statusEl.className = 'status winner';
             } else if (winner === 'O') {
-                statusEl.textContent = '😢 AI Wins!';
+                statusEl.textContent = '🎉 Player O Wins!';
                 statusEl.className = 'status winner';
             } else if (this.isBoardFull()) {
                 statusEl.textContent = "It's a Draw!";
                 statusEl.className = 'status draw';
             }
         } else {
-            statusEl.textContent = this.currentPlayer === 'X' ? 'Your turn (X)' : 'AI is thinking...';
+            statusEl.textContent = `Player ${this.currentPlayer}'s Turn`;
             statusEl.className = 'status';
         }
     }
