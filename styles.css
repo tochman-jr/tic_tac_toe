@@ -149,22 +149,20 @@ h1 {
 }
 
 .reset-btn {
-    padding: 12px 30px;
+    padding: 12px 24px;
     font-size: 1.1em;
-    background: #00eaff;
-    color: #000;
-    border: 2px solid #00eaff;
+    background: #333;
+    color: #eee;
+    border: 2px solid #555;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
     font-weight: bold;
-    box-shadow: 0 0 8px #00eaff, 0 0 15px #00eaff;
-    /* remove rounded corners */
-    border-radius: 0;
 }
 
 .reset-btn:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 12px #00eaff, 0 0 20px #00eaff;
+    background: #444;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.6);
 }
 
 .menu {
