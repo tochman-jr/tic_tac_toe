@@ -185,11 +185,12 @@ function handleMove(ws, data) {
     game.board[index] = game.currentPlayer;
     game.currentPlayer = game.currentPlayer === 'X' ? 'O' : 'X';
 
+    const room = rooms[ws.roomCode];
+
     if (checkWinner(game.board) || isBoardFull(game.board)) {
         game.gameOver = true;
         // Update scores
         const winner = checkWinner(game.board);
-        const room = rooms[ws.roomCode];
         if (winner) {
             const winnerId = Object.keys(game.playerSymbols).find(id => game.playerSymbols[id] === winner);
             const loserId = Object.keys(game.playerSymbols).find(id => game.playerSymbols[id] !== winner);
@@ -205,7 +206,7 @@ function handleMove(ws, data) {
     }
 
     // Check if match limit reached
-    if (room.currentMatch >= room.matchCount) {
+    if (room && room.currentMatch >= room.matchCount) {
         // End session
         broadcastGameState(gameId);
         setTimeout(() => {

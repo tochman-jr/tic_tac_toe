@@ -38,7 +38,7 @@ class TicTacToe {
         document.getElementById('gameScreen').classList.add('hidden');
         document.getElementById('mainMenu').classList.add('hidden');
         document.getElementById('onlineMenu').classList.remove('hidden');
-        // ensure choice/settings visibility reset
+        // reset visibility
         const onlineChoice = document.getElementById('onlineChoice');
         const hostSettings = document.getElementById('hostSettings');
         const joinSettings = document.getElementById('joinSettings');
@@ -46,7 +46,11 @@ class TicTacToe {
         if (hostSettings) hostSettings.classList.add('hidden');
         if (joinSettings) joinSettings.classList.add('hidden');
 
-        this.setupOnlineMenuEventListeners();
+        // only set up listeners and connect once per visit
+        if (!this._onlineMenuReady) {
+            this._onlineMenuReady = true;
+            this.setupOnlineMenuEventListeners();
+        }
         this.connectToServer();
     }
 
@@ -83,13 +87,22 @@ class TicTacToe {
 
         const createBtn = document.getElementById('createRoomBtn');
         const joinRoomBtn = document.getElementById('joinRoomBtn');
-        if (createBtn) createBtn.addEventListener('click', () => this.createRoom());
-        if (joinRoomBtn) joinRoomBtn.addEventListener('click', () => { console.log('[UI] joinRoomBtn clicked'); this.joinRoom(); });
+            if (createBtn) {
+                createBtn.addEventListener('click', () => this.createRoom());
+                createBtn.addEventListener('touchstart', (e) => { e.preventDefault(); this.createRoom(); });
+            }
+            if (joinRoomBtn) {
+                joinRoomBtn.addEventListener('click', () => { console.log('[UI] joinRoomBtn clicked'); this.joinRoom(); });
+                joinRoomBtn.addEventListener('touchstart', (e) => { e.preventDefault(); console.log('[UI] joinRoomBtn touchstart'); this.joinRoom(); });
+            }
 
         const roomInput = document.getElementById('roomCodeInput');
-        if (roomInput) roomInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') this.joinRoom();
-        });
+            if (roomInput) roomInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.code === 'Enter') {
+                    e.preventDefault();
+                    this.joinRoom();
+                }
+            });
 
         const copyBtn = document.getElementById('copyRoomCodeBtn');
         if (copyBtn) copyBtn.addEventListener('click', () => {
@@ -121,17 +134,31 @@ class TicTacToe {
     }
 
     connectToServer() {
-        // Connect to Railway WebSocket server
+        // close any existing connection before opening a new one
+        if (this.ws && this.ws.readyState !== WebSocket.CLOSED) {
+            this.ws.onclose = null; // prevent the close handler showing 'Disconnected'
+            this.ws.close();
+        }
+
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const host = window.location.hostname;
         const port = window.location.port ? `:${window.location.port}` : '';
         const wsUrl = `${protocol}//${host}${port}`;
+
+        // disable action buttons until connection is established
+        const createBtn = document.getElementById('createRoomBtn');
+        const joinRoomBtn = document.getElementById('joinRoomBtn');
+        if (createBtn) createBtn.disabled = true;
+        if (joinRoomBtn) joinRoomBtn.disabled = true;
 
         this.ws = new WebSocket(wsUrl);
 
         this.ws.onopen = () => {
             this.showMessage('Connected! Choose an option below.');
             console.log('[WS] connection opened');
+            // enable buttons now that socket is ready
+            if (createBtn) createBtn.disabled = false;
+            if (joinRoomBtn) joinRoomBtn.disabled = false;
         };
 
         this.ws.onmessage = (event) => {
@@ -222,16 +249,6 @@ class TicTacToe {
             }
             return bestScore;
         }
-    }
-
-    setupMenuEventListeners() {
-        document.getElementById('createRoomBtn').addEventListener('click', () => this.createRoom());
-        document.getElementById('joinRoomBtn').addEventListener('click', () => this.joinRoom());
-        document.getElementById('roomCodeInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                this.joinRoom();
-            }
-        });
     }
 
     setupEventListeners() {
@@ -341,7 +358,11 @@ class TicTacToe {
                 this.player = data.player;
                 this.opponent = data.opponent;
                 this.showGame();
-                this.setupEventListeners();
+                // only attach cell/reset listeners once to avoid accumulation
+                if (!this._gameBound) {
+                    this._gameBound = true;
+                    this.setupEventListeners();
+                }
                 this.showMessage(`Game started! You are ${this.player}`);
                 break;
             case 'gameState':
@@ -503,9 +524,10 @@ class TicTacToe {
     }
 
     backToMenu() {
+        const wasOnline = this.gameMode === 'online';
         this.resetGame();
         document.getElementById('scores').style.display = 'none';
-        if (this.gameMode === 'online') {
+        if (wasOnline) {
             this.showOnlineMenu();
         } else {
             this.showMainMenu();
