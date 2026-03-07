@@ -443,6 +443,7 @@ class TicTacToe {
     render() {
         const cells = document.querySelectorAll('.cell');
         const statusEl = document.getElementById('status');
+        const winLine = this.getWinLine();
 
         cells.forEach((cell, index) => {
             cell.className = 'cell';
@@ -455,6 +456,9 @@ class TicTacToe {
                 cell.textContent = 'O';
             } else {
                 cell.textContent = '';
+            }
+            if (winLine && winLine.includes(index)) {
+                cell.classList.add('winner-cell');
             }
         });
 
@@ -521,6 +525,8 @@ class TicTacToe {
     showGame() {
         document.getElementById('menuScreen').classList.add('hidden');
         document.getElementById('gameScreen').classList.remove('hidden');
+        const lbl = document.getElementById('modeLabel');
+        if (lbl) lbl.textContent = `MODE:${this.gameMode ? this.gameMode.toUpperCase() : '--'}`;
     }
 
     backToMenu() {
@@ -562,6 +568,33 @@ class TicTacToe {
         document.getElementById('scores').style.display = 'flex';
         document.getElementById('player1Score').textContent = `Player X: ${scores.player1.wins}W ${scores.player1.losses}L ${scores.player1.draws}D`;
         document.getElementById('player2Score').textContent = `Player O: ${scores.player2.wins}W ${scores.player2.losses}L ${scores.player2.draws}D`;
+    }
+
+    getWinLine() {
+        const lines = [
+            [0,1,2],[3,4,5],[6,7,8],
+            [0,3,6],[1,4,7],[2,5,8],
+            [0,4,8],[2,4,6]
+        ];
+        for (const line of lines) {
+            const [a,b,c] = line;
+            if (this.board[a] && this.board[a] === this.board[b] && this.board[a] === this.board[c]) {
+                return line;
+            }
+        }
+        return null;
+    }
+
+    showMessage(msg) {
+        const onMenu = !document.getElementById('menuScreen').classList.contains('hidden');
+        const menuMsg = document.getElementById('message');
+        const gameStatus = document.getElementById('status');
+        if (onMenu && menuMsg) {
+            menuMsg.textContent = msg;
+        } else if (gameStatus) {
+            gameStatus.textContent = msg;
+            gameStatus.className = 'status';
+        }
     }
 }
 

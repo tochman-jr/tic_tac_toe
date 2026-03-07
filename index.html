@@ -3,78 +3,119 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Taddes Tic Tac Toe Game</title>
+    <title>Taddes Tic Tac Toe</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
-    <!-- Font Awesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 <body>
-    <!-- menu screen (AI/local/online selection) -->
-    <div id="menuScreen" class="container">
-        <h1> Tic Tac Toe</h1>
-        
+    <div class="hud-bg"></div>
+
+    <!-- MENU SCREEN -->
+    <div id="menuScreen" class="hud-panel">
+        <div class="hud-corner tl"></div>
+        <div class="hud-corner tr"></div>
+        <div class="hud-corner bl"></div>
+        <div class="hud-corner br"></div>
+
+        <div class="panel-bar panel-bar--top">
+            <span>SYS:ONLINE</span>
+            <span class="bar-title">T1C·T4C·TOE</span>
+            <span>v2.1</span>
+        </div>
+
+        <h1>TIC TAC TOE</h1>
+        <div class="hud-subtitle">TACTICAL ENGAGEMENT SYSTEM</div>
+        <div id="message" class="hud-message"></div>
+
         <!-- Main Menu -->
         <div id="mainMenu" class="menu">
-            <h2>Choose Game Mode</h2>
-            <button id="aiBtn" class="menu-btn">Play vs AI</button>
-            <button id="localBtn" class="menu-btn">Play Local (Same Device)</button>
-            <button id="onlineBtn" class="menu-btn">Play Online</button>
+            <div class="section-label">// SELECT MODE</div>
+            <button id="aiBtn" class="menu-btn">vs AI</button>
+            <button id="localBtn" class="menu-btn">Local Co-op</button>
+            <button id="onlineBtn" class="menu-btn">Online Multiplayer</button>
         </div>
 
         <!-- Online Menu -->
         <div id="onlineMenu" class="menu hidden">
-            <h2>Online Multiplayer</h2>
+            <div class="section-label">// NETWORK CONNECT</div>
 
             <div id="onlineChoice" class="choice-section">
-                <button id="hostChoiceBtn" class="menu-btn">Host a Game</button>
-                <button id="joinChoiceBtn" class="menu-btn">Join a Game</button>
+                <button id="hostChoiceBtn" class="menu-btn">Host Session</button>
+                <button id="joinChoiceBtn" class="menu-btn">Join Session</button>
             </div>
 
             <div id="hostSettings" class="create-section hidden">
-                <input type="number" id="matchCountInput" placeholder="Number of Matches" min="1" max="10" value="3" class="room-input">
-                <button id="createRoomBtn" class="menu-btn">Create Room</button>
-                <div id="hostRoomCode" class="room-code hidden">
-                    Room Code: <span id="roomCodeDisplay"></span>
-                    <button id="copyRoomCodeBtn" class="menu-btn small">Copy</button>
+                <div class="field-group">
+                    <label class="field-label">MATCHES</label>
+                    <input type="number" id="matchCountInput" min="1" max="10" value="3" class="room-input" style="width:80px">
+                </div>
+                <button id="createRoomBtn" class="menu-btn">Initialize Room</button>
+                <div id="hostRoomCode" class="room-code-block hidden">
+                    <span class="field-label">ACCESS CODE</span>
+                    <span id="roomCodeDisplay">------</span>
+                    <button id="copyRoomCodeBtn" class="menu-btn small">COPY</button>
                 </div>
             </div>
 
             <div id="joinSettings" class="join-section hidden">
-                <input type="text" id="roomCodeInput" placeholder="Enter Room Code" maxlength="6" class="room-input">
-                <button id="joinRoomBtn" class="menu-btn">Join Room</button>
+                <div class="field-group">
+                    <label class="field-label">ACCESS CODE</label>
+                    <input type="text" id="roomCodeInput" placeholder="XXXXXX" maxlength="6" class="room-input">
+                </div>
+                <button id="joinRoomBtn" class="menu-btn">Connect</button>
             </div>
 
-            <button id="backToMainBtn" class="back-btn">← Back to Main Menu</button>
+            <button id="backToMainBtn" class="back-btn">← MAIN MENU</button>
+        </div>
+
+        <div class="panel-bar panel-bar--bottom">
+            <span>GRID:3×3</span>
+            <span>STATUS:READY</span>
         </div>
     </div>
 
-    <!-- game screen (board and controls) -->
-    <div id="gameScreen" class="container hidden">
-        <h1>Multiplayer Tic Tac Toe</h1>
-        <div id="game" class="game">
-            <div class="board" id="board">
-                <div class="cell" data-index="0"></div>
-                <div class="cell" data-index="1"></div>
-                <div class="cell" data-index="2"></div>
-                <div class="cell" data-index="3"></div>
-                <div class="cell" data-index="4"></div>
-                <div class="cell" data-index="5"></div>
-                <div class="cell" data-index="6"></div>
-                <div class="cell" data-index="7"></div>
-                <div class="cell" data-index="8"></div>
-            </div>
+    <!-- GAME SCREEN -->
+    <div id="gameScreen" class="hud-panel hidden">
+        <div class="hud-corner tl"></div>
+        <div class="hud-corner tr"></div>
+        <div class="hud-corner bl"></div>
+        <div class="hud-corner br"></div>
 
-            <div class="scores" id="scores" style="display: none;">
-                <div id="player1Score">Player X: 0W 0L 0D</div>
-                <div id="player2Score">Player O: 0W 0L 0D</div>
-            </div>
+        <div class="panel-bar panel-bar--top">
+            <span>MATCH:ACTIVE</span>
+            <span class="bar-title">T1C·T4C·TOE</span>
+            <span class="bar-live">● LIVE</span>
+        </div>
 
-            <div class="status" id="status">Choose a game mode to start!</div>
-            
-            <div class="game-controls">
-                <button class="reset-btn" id="resetBtn">New Game</button>
-                <button class="back-btn" id="backToMenuBtn">← Back to Menu</button>
-            </div>
+        <div class="scores" id="scores" style="display:none">
+            <div id="player1Score">X: 0W 0L 0D</div>
+            <div id="player2Score">O: 0W 0L 0D</div>
+        </div>
+
+        <div class="board" id="board">
+            <div class="cell" data-index="0"></div>
+            <div class="cell" data-index="1"></div>
+            <div class="cell" data-index="2"></div>
+            <div class="cell" data-index="3"></div>
+            <div class="cell" data-index="4"></div>
+            <div class="cell" data-index="5"></div>
+            <div class="cell" data-index="6"></div>
+            <div class="cell" data-index="7"></div>
+            <div class="cell" data-index="8"></div>
+        </div>
+
+        <div class="status" id="status">INITIALIZING...</div>
+
+        <div class="game-controls">
+            <button class="reset-btn" id="resetBtn">NEW GAME</button>
+            <button class="back-btn" id="backToMenuBtn">← MENU</button>
+        </div>
+
+        <div class="panel-bar panel-bar--bottom">
+            <span id="modeLabel">MODE:--</span>
+            <span>GRID:3×3</span>
         </div>
     </div>
 
