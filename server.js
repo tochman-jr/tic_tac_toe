@@ -129,13 +129,14 @@ function startGame(room) {
         playerSymbols: {}
     };
 
-    // Assign player symbols based on starter
+    // IDs are permanently fixed: players[0] = 'player1' (host), players[1] = 'player2' (joiner)
+    room.players[0].id = 'player1';
+    room.players[1].id = 'player2';
+
+    // Symbols alternate each game based on who the starter is
     const starter = room.starter;
-    const second = starter === 'player1' ? 'player2' : 'player1';
-    room.players[0].id = starter;
-    room.players[1].id = second;
-    games[gameId].playerSymbols[starter] = 'X';
-    games[gameId].playerSymbols[second] = 'O';
+    games[gameId].playerSymbols['player1'] = starter === 'player1' ? 'X' : 'O';
+    games[gameId].playerSymbols['player2'] = starter === 'player2' ? 'X' : 'O';
 
     // remember gameId on each websocket so moves can be associated
     room.players.forEach(ws => ws.gameId = gameId);
