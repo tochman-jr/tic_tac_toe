@@ -208,30 +208,34 @@ function handleMove(ws, data) {
 
     // Check if match limit reached
     if (room && room.currentMatch >= room.matchCount) {
-        // End session
+        // End session — broadcast final state then notify clients
         broadcastGameState(gameId);
         setTimeout(() => {
             room.players.forEach(player => {
                 player.send(JSON.stringify({ type: 'sessionEnd', finalScores: room.scores }));
             });
-        }, 2000); // Delay to show final state
+        }, 2000);
         return;
     }
 
     broadcastGameState(gameId);
+
+    // If the game just ended and there are still matches remaining, auto-start next round
+    if (game.gameOver) {
+        setTimeout(() => {
+            // Make sure both players are still connected
+            if (room && room.players.length === 2) {
+                startGame(room);
+            }
+        }, 2200);
+    }
 }
 
 function handleReset(ws, data) {
-    const gameId = ws.gameId;
-    const game = games[gameId];
-
-    if (!game) return;
-
-    game.board = Array(9).fill(null);
-    game.currentPlayer = 'X';
-    game.gameOver = false;
-
-    broadcastGameState(gameId);
+    const room = rooms[ws.roomCode];
+    if (!room || room.players.length < 2) return;
+    // Reset match counter and restart properly so symbols alternate
+    startGame(room);
 }
 
 function handleDisconnect(ws) {

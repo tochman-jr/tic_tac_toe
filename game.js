@@ -351,20 +351,27 @@ class TicTacToe {
             case 'waitingInRoom':
                 this.showMessage(data.message);
                 break;
-            case 'gameStart':
+            case 'gameStart': {
+                const isNewSession = this.gameMode !== 'online';
                 this.gameMode = 'online';
-                this.resetGame();                     // clear any prior state
+                // Preserve scores display across rounds — only reset board/state
+                this.board = Array(9).fill(null);
+                this.currentPlayer = 'X';
+                this.gameOver = false;
                 this.gameId = data.gameId;
-                this.player = data.player;
+                this.player = data.player;       // may have switched (X <-> O)
                 this.opponent = data.opponent;
-                this.showGame();
-                // only attach cell/reset listeners once to avoid accumulation
-                if (!this._gameBound) {
-                    this._gameBound = true;
-                    this.setupEventListeners();
+                if (isNewSession) {
+                    this.showGame();
+                    if (!this._gameBound) {
+                        this._gameBound = true;
+                        this.setupEventListeners();
+                    }
                 }
-                this.showMessage(`Game started! You are ${this.player}`);
+                this.render();
+                this.showMessage(`Round started — you are ${this.player}`);
                 break;
+            }
             case 'gameState':
                 console.log('[WS] gameState received', data);
                 this.board = data.board;
