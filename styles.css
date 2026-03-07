@@ -367,6 +367,16 @@ h1 {
 @media (hover: hover) {
     .cell:hover { background: rgba(0, 234, 255, 0.06); }
 }
+
+/* Larger board on desktop */
+@media (min-width: 600px) and (hover: hover) {
+    .board {
+        grid-template-columns: repeat(3, 130px);
+        grid-template-rows: repeat(3, 130px);
+    }
+    .cell { font-size: 3.6em; }
+    .hud-panel { width: min(560px, 96vw); }
+}
 .cell.x {
     color: var(--cyan);
     text-shadow: 0 0 12px var(--cyan), 0 0 28px rgba(0, 234, 255, 0.5);
