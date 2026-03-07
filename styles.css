@@ -107,9 +107,11 @@ h1 {
     font-family: Arial, sans-serif; /* plain thin font for X/O */
 }
 
-.cell:hover {
-    background: #f0f0f0;
-    transform: scale(1.05);
+@media (hover: hover) {
+    .cell:hover {
+        background: #f0f0f0;
+        transform: scale(1.05);
+    }
 }
 
 .cell.x {
@@ -172,10 +174,12 @@ h1 {
     font-weight: bold;
 }
 
-.reset-btn:hover {
-    background: #444;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.6);
+@media (hover: hover) {
+    .reset-btn:hover {
+        background: #444;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.6);
+    }
 }
 
 .menu {
@@ -197,13 +201,12 @@ h1 {
     font-weight: bold;
 }
 
-.menu-btn:hover {
-    background: #444;
-}
-
-.menu-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.6);
+@media (hover: hover) {
+    .menu-btn:hover {
+        background: #444;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.6);
+    }
 }
 
 .menu-btn:disabled {
@@ -271,12 +274,11 @@ h1 {
     transition: all 0.2s ease;
 }
 
-.back-btn:hover {
-    background: #555;
-}
-.back-btn:hover {
-    background: #555;
-    transform: translateY(-1px);
+@media (hover: hover) {
+    .back-btn:hover {
+        background: #555;
+        transform: translateY(-1px);
+    }
 }
 
 .game-controls {
